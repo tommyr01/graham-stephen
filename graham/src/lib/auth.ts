@@ -3,10 +3,17 @@ import jwt from 'jsonwebtoken';
 import { NextRequest } from 'next/server';
 import { User } from './types';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
-}
+// Function to get JWT secret at runtime
+const getJWTSecret = () => {
+  const JWT_SECRET = process.env.JWT_SECRET;
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+  return JWT_SECRET;
+};
+
+// Check if we're in build time - during build, Next.js may not have all env vars
+const isBuildTime = !process.env.JWT_SECRET || process.env.NODE_ENV === undefined;
 
 export interface JWTPayload {
   userId: string;
@@ -30,7 +37,7 @@ export function generateToken(user: User): string {
     email: user.email,
   };
 
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, getJWTSecret(), {
     expiresIn: '7d', // Token expires in 7 days
   });
 }
@@ -41,14 +48,14 @@ export function generateRefreshToken(user: User): string {
     email: user.email,
   };
 
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, getJWTSecret(), {
     expiresIn: '30d', // Refresh token expires in 30 days
   });
 }
 
 export function verifyToken(token: string): JWTPayload {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+    return jwt.verify(token, getJWTSecret()) as JWTPayload;
   } catch (error) {
     throw new Error('Invalid or expired token');
   }

@@ -2,12 +2,20 @@ import axios from 'axios';
 import { LinkedInAPIResponse, LinkedInComment, CommentData } from './types';
 import { getCachedData, setCachedData } from './database';
 
-const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
-const RAPIDAPI_HOST = process.env.RAPIDAPI_HOST || 'linkedin-scraper-api-real-time-fast-affordable.p.rapidapi.com';
+// Function to get RapidAPI credentials at runtime
+const getRapidAPIConfig = () => {
+  const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
+  if (!RAPIDAPI_KEY) {
+    throw new Error('RAPIDAPI_KEY environment variable is required');
+  }
+  return {
+    key: RAPIDAPI_KEY,
+    host: process.env.RAPIDAPI_HOST || 'linkedin-scraper-api-real-time-fast-affordable.p.rapidapi.com'
+  };
+};
 
-if (!RAPIDAPI_KEY) {
-  throw new Error('RAPIDAPI_KEY environment variable is required');
-}
+// Check if we're in build time - during build, Next.js may not have all env vars
+const isBuildTime = !process.env.RAPIDAPI_KEY || process.env.NODE_ENV === undefined;
 
 // LinkedIn Post URL validation
 export function validateLinkedInPostUrl(url: string): { isValid: boolean; postId?: string } {
@@ -112,12 +120,13 @@ export async function fetchLinkedInComments(
   }
 
   try {
+    const config = getRapidAPIConfig();
     const response = await axios.get(
-      `https://${RAPIDAPI_HOST}/post/comments`,
+      `https://${config.host}/post/comments`,
       {
         headers: {
-          'X-RapidAPI-Key': RAPIDAPI_KEY,
-          'X-RapidAPI-Host': RAPIDAPI_HOST,
+          'X-RapidAPI-Key': config.key,
+          'X-RapidAPI-Host': config.host,
         },
         params: {
           post_url: postUrl,
@@ -195,12 +204,13 @@ export async function fetchCommenterProfile(
   }
 
   try {
+    const config = getRapidAPIConfig();
     const response = await axios.get(
-      `https://${RAPIDAPI_HOST}/profile/detail`,
+      `https://${config.host}/profile/detail`,
       {
         headers: {
-          'X-RapidAPI-Key': RAPIDAPI_KEY,
-          'X-RapidAPI-Host': RAPIDAPI_HOST,
+          'X-RapidAPI-Key': config.key,
+          'X-RapidAPI-Host': config.host,
         },
         params: {
           username: username,
@@ -260,12 +270,13 @@ export async function fetchCommenterRecentPosts(
   }
 
   try {
+    const config = getRapidAPIConfig();
     const response = await axios.get(
-      `https://${RAPIDAPI_HOST}/profile/posts`,
+      `https://${config.host}/profile/posts`,
       {
         headers: {
-          'X-RapidAPI-Key': RAPIDAPI_KEY,
-          'X-RapidAPI-Host': RAPIDAPI_HOST,
+          'X-RapidAPI-Key': config.key,
+          'X-RapidAPI-Host': config.host,
         },
         params: {
           username: username,
