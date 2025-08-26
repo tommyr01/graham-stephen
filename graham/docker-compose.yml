@@ -1,0 +1,77 @@
+services:
+  # Next.js Backend API (Uses Supabase for database)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: graham-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # Supabase Configuration (External Database)
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      # RapidAPI LinkedIn Configuration
+      - RAPIDAPI_KEY=${RAPIDAPI_KEY}
+      - RAPIDAPI_HOST=${RAPIDAPI_HOST}
+      # Authentication
+      - JWT_SECRET=${JWT_SECRET}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      # Optional configurations
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-3600000}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+# Optional Services (Uncomment if needed later)
+
+  # Redis Cache (Optional - for API rate limiting and caching)
+  # Uncomment this section if you want to add Redis later
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: graham-redis
+  #   restart: unless-stopped
+  #   command: redis-server --appendonly yes
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # Nginx Reverse Proxy (Optional - for production deployment)
+  # Uncomment this section for production with SSL
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: graham-nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #   depends_on:
+  #     - backend
+
+# Uncomment if you enable Redis later
+# volumes:
+#   redis_data:
+#     driver: local
