@@ -1,36 +1,76 @@
 import { createClient } from '@supabase/supabase-js';
 
-if (!process.env.SUPABASE_URL) {
-  throw new Error('Missing env.SUPABASE_URL');
-}
-
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  throw new Error('Missing env.SUPABASE_SERVICE_ROLE_KEY');
-}
-
-// Create a single supabase client for interacting with your database
-export const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
+// Create placeholder client that will throw meaningful errors at runtime if actually used
+const createPlaceholderClient = () => {
+  return new Proxy({}, {
+    get: () => {
+      throw new Error('Supabase client not properly initialized. Make sure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set in your environment.');
     }
-  }
-);
+  }) as any;
+};
 
-// Public client for anonymous access (uses anon key)
-export const supabasePublic = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY || '',
-  {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true
-    }
+// Function to create the real Supabase client
+const createRealSupabaseClient = () => {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Missing required environment variables: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
   }
-);
+  
+  return createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  );
+};
+
+// Function to create the real public Supabase client
+const createRealSupabasePublicClient = () => {
+  if (!process.env.SUPABASE_URL) {
+    throw new Error('Missing required environment variable: SUPABASE_URL');
+  }
+  
+  return createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY || '',
+    {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true
+      }
+    }
+  );
+};
+
+// Check if we're in build time - during build, Next.js may not have all env vars
+const isBuildTime = !process.env.SUPABASE_URL || process.env.NODE_ENV === undefined;
+
+// Export clients - use placeholders during build, real clients at runtime
+export const supabase = isBuildTime 
+  ? createPlaceholderClient()
+  : createRealSupabaseClient();
+
+export const supabasePublic = isBuildTime 
+  ? createPlaceholderClient()
+  : createRealSupabasePublicClient();
+
+// Helper function to ensure clients are available at runtime
+export const getSupabaseClient = () => {
+  if (isBuildTime) {
+    return createRealSupabaseClient();
+  }
+  return supabase;
+};
+
+export const getSupabasePublicClient = () => {
+  if (isBuildTime) {
+    return createRealSupabasePublicClient();
+  }
+  return supabasePublic;
+};
 
 // Database table names
 export const TABLES = {
@@ -61,5 +101,8 @@ export const TABLES = {
   FEEDBACK_INTERACTIONS: 'feedback_interactions',
   DISCOVERED_PATTERNS: 'discovered_patterns',
   RESEARCH_QUALITY_METRICS: 'research_quality_metrics',
-  AGENT_IMPROVEMENTS: 'agent_improvements'
+  AGENT_IMPROVEMENTS: 'agent_improvements',
+  // Orchestration tables
+  ORCHESTRATION_SESSIONS: 'orchestration_sessions',
+  AGENT_FAILURES: 'agent_failures'
 } as const;

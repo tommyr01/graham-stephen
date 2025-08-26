@@ -11,7 +11,7 @@ import PersonalizationAgent from './personalization-agent';
 import QualityMonitoringAgent from './quality-monitoring-agent';
 import ProactiveImprovementAgent from './proactive-improvement-agent';
 
-import { supabase } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
 import type { 
   APIResponse,
   LearningInsight,
@@ -672,6 +672,7 @@ export class AutonomousAgentOrchestrator {
 
   private async checkDatabaseHealth(): Promise<{ healthy: boolean; score: number }> {
     try {
+      const supabase = getSupabaseClient();
       const { error } = await supabase.from('users').select('id').limit(1);
       return { healthy: !error, score: error ? 0.2 : 1.0 };
     } catch (error) {
@@ -714,14 +715,19 @@ export class AutonomousAgentOrchestrator {
   private async handleAgentFailure(agentName: string, error: any): Promise<void> {
     console.log(`🔧 Handling failure for agent: ${agentName}`);
     
-    // Log the failure
-    await supabase.from('agent_failures').insert({
-      agent_name: agentName,
-      error_message: error.message,
-      error_stack: error.stack,
-      timestamp: new Date(),
-      orchestration_session: 'current' // Would be actual session ID
-    });
+    try {
+      // Log the failure
+      const supabase = getSupabaseClient();
+      await supabase.from('agent_failures').insert({
+        agent_name: agentName,
+        error_message: error.message,
+        error_stack: error.stack,
+        timestamp: new Date(),
+        orchestration_session: 'current' // Would be actual session ID
+      });
+    } catch (dbError) {
+      console.warn('Failed to log agent failure to database:', dbError);
+    }
 
     // Attempt recovery based on agent type
     // This would include specific recovery procedures for each agent
@@ -730,6 +736,7 @@ export class AutonomousAgentOrchestrator {
   private async quickSystemHealthCheck(): Promise<{ critical_issues: number }> {
     try {
       // Quick check for critical system issues
+      const supabase = getSupabaseClient();
       const { error } = await supabase.from('users').select('id').limit(1);
       return { critical_issues: error ? 1 : 0 };
     } catch (error) {
@@ -865,6 +872,7 @@ export class AutonomousAgentOrchestrator {
     improvements: AgentImprovement[]
   ): Promise<void> {
     try {
+      const supabase = getSupabaseClient();
       await supabase.from('orchestration_sessions').insert({
         session_id: session.id,
         orchestrator_version: this.orchestrationVersion,
