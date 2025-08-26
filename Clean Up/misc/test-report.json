@@ -1,0 +1,80 @@
+{
+  "summary": {
+    "total": 30,
+    "passed": 24,
+    "failed": 6,
+    "passRate": 80,
+    "executionTime": 16444
+  },
+  "coverage": {
+    "endpoints": {
+      "authentication": {
+        "passed": 7,
+        "total": 9
+      },
+      "linkedin": {
+        "passed": 3,
+        "total": 5
+      },
+      "analysis": {
+        "passed": 3,
+        "total": 3
+      },
+      "feedback": {
+        "passed": 1,
+        "total": 1
+      }
+    },
+    "database": {},
+    "businessLogic": {
+      "passed": 2,
+      "total": 2
+    },
+    "security": {
+      "passed": 3,
+      "total": 4
+    },
+    "errorHandling": {
+      "passed": 2,
+      "total": 3
+    }
+  },
+  "performance": {
+    "authResponseTime": 303,
+    "healthCheckTime": 562,
+    "concurrentRequestTime": 75.6
+  },
+  "errors": [
+    {
+      "test": "User Registration - Invalid Email Rejection",
+      "error": "Expected status 400 for invalid email, got 500",
+      "stack": "Error: Expected status 400 for invalid email, got 500\n    at testAuthentication (/Users/tommyrichardson/Cursor/Graham Stephens Build/graham/test-suite.js:213:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async runTestSuite (/Users/tommyrichardson/Cursor/Graham Stephens Build/graham/test-suite.js:1198:27)"
+    },
+    {
+      "test": "User Registration - Weak Password Rejection",
+      "error": "Expected status 400 for weak password, got 500",
+      "stack": "Error: Expected status 400 for weak password, got 500\n    at testAuthentication (/Users/tommyrichardson/Cursor/Graham Stephens Build/graham/test-suite.js:237:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async runTestSuite (/Users/tommyrichardson/Cursor/Graham Stephens Build/graham/test-suite.js:1198:27)"
+    },
+    {
+      "test": "LinkedIn URL Validation - Valid URL",
+      "error": "Valid LinkedIn URL was marked as invalid",
+      "stack": "Error: Valid LinkedIn URL was marked as invalid\n    at testLinkedInIntegration (/Users/tommyrichardson/Cursor/Graham Stephens Build/graham/test-suite.js:394:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async runTestSuite (/Users/tommyrichardson/Cursor/Graham Stephens Build/graham/test-suite.js:1201:27)"
+    },
+    {
+      "test": "LinkedIn Extract Comments - Valid Post",
+      "error": "Comment extraction failed: Please provide a valid LinkedIn post URL",
+      "stack": "Error: Comment extraction failed: Please provide a valid LinkedIn post URL\n    at testLinkedInIntegration (/Users/tommyrichardson/Cursor/Graham Stephens Build/graham/test-suite.js:435:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async runTestSuite (/Users/tommyrichardson/Cursor/Graham Stephens Build/graham/test-suite.js:1201:27)"
+    },
+    {
+      "test": "Security - XSS Prevention",
+      "error": "XSS payload was not properly sanitized",
+      "stack": "Error: XSS payload was not properly sanitized\n    at testSecurity (/Users/tommyrichardson/Cursor/Graham Stephens Build/graham/test-suite.js:1025:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async runTestSuite (/Users/tommyrichardson/Cursor/Graham Stephens Build/graham/test-suite.js:1216:5)"
+    },
+    {
+      "test": "Error Handling - Invalid JSON",
+      "error": "Expected 400 for invalid JSON, got 500",
+      "stack": "Error: Expected 400 for invalid JSON, got 500\n    at testErrorHandling (/Users/tommyrichardson/Cursor/Graham Stephens Build/graham/test-suite.js:1121:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async runTestSuite (/Users/tommyrichardson/Cursor/Graham Stephens Build/graham/test-suite.js:1219:5)"
+    }
+  ],
+  "timestamp": "2025-08-14T15:10:20.361Z"
+}
